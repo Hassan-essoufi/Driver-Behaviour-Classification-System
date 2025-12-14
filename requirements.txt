@@ -1,0 +1,12 @@
+torch>=1.9
+torchvision
+ultralytics (YOLOv8)
+opencv-python
+pandas
+numpy
+scikit-learn
+matplotlib
+seaborn
+albumentations
+tqdm
+pyyaml

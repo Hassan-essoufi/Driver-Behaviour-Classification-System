@@ -89,7 +89,7 @@ driver-distraction-detection/                    # ROOT DU PROJET
 │   │   - Visualisation résultats
 │   │
 │   ├── 📄 predict.py                          # Prédictions
-│   │   - Pipeline complet (détection + classification)
+│   │   - Pipeline complet (classification + detection)
 │   │   - Inference sur nouvelles images
 │   │   - Interface simple
 │   │
@@ -132,43 +132,43 @@ driver-distraction-detection/                    # ROOT DU PROJET
 │
 ├── 📂 notebooks/                              # NOTEBOOKS JUPYTER
 │   │
-│   ├── 📄 01_data_exploration.ipynb          # EXPLORATION (NEXT)
+│   ├── data_exploration.ipynb          # EXPLORATION (NEXT)
 │   │   - Analyse distribution
 │   │   - Visualisation images
 │   │   - Statistiques
 │   │
-│   ├── 📄 02_preprocessing.ipynb             # PRÉTRAITEMENT
+│   ├── preprocessing.ipynb             # PRÉTRAITEMENT
 │   │   - Test transformations
 │   │   - Augmentation visuelle
 │   │
-│   ├── 📄 03_train_classifier.ipynb          # ENTRAÎNEMENT CLASSIFIEUR
+│   ├── train_classifier.ipynb          # ENTRAÎNEMENT CLASSIFIEUR
 │   │   - Expériences ResNet/EfficientNet
 │   │   - Fine-tuning
 │   │
-│   ├── 📄 04_train_detector.ipynb            # ENTRAÎNEMENT YOLO
+│   ├── train_detector.ipynb            # ENTRAÎNEMENT YOLO
 │   │   - Détection conducteur
 │   │   - Annotations bbox
 │   │
-│   ├── 📄 05_evaluation.ipynb                # ÉVALUATION
+│   ├── evaluation.ipynb                # ÉVALUATION
 │   │   - Métriques détaillées
 │   │   - Analyse erreurs
 │   │
-│   └── 📄 06_demo_pipeline.ipynb             # DÉMO COMPLÈTE
+│   └── demo_pipeline.ipynb             # DÉMO COMPLÈTE
 │       - Pipeline temps réel
 │       - Test sur vidéo
 │
 ├── 📂 results/                                # RÉSULTATS ET SORTIES
 │   │
 │   ├── 📁 training_logs/                      # LOGS D'ENTRAÎNEMENT
-│   │   ├── 📄 classifier_training.log
-│   │   ├── 📄 detector_training.log
-│   │   └── 📄 tensorboard/                   # Visualisation TensorBoard
+│   │   ├── classifier_training.log
+│   │   ├── detector_training.log
+│   │   └── tensorboard/                   # Visualisation TensorBoard
 │   │
 │   ├── 📁 metrics/                            # MÉTRIQUES
-│   │   ├── 📄 final_metrics.json
-│   │   ├── 📄 confusion_matrix.png
-│   │   ├── 📄 roc_curves.png
-│   │   └── 📄 per_class_metrics.csv
+│   │   ├── final_metrics.json
+│   │   ├── confusion_matrix.png
+│   │   ├── roc_curves.png
+│   │   └── per_class_metrics.csv
 │   │
 │   ├── 📁 visualizations/                     # VISUALISATIONS
 │   │   ├── 📁 training_curves/
@@ -181,10 +181,10 @@ driver-distraction-detection/                    # ROOT DU PROJET
 │   │   └── 📁 difficult_cases/
 │   │
 │   └── 📁 exported_models/                    # MODÈLES EXPORTÉS
-│       ├── 📄 classifier.onnx                 # Pour déploiement
-│       └── 📄 classifier.tflite               # Pour mobile
+│       ├── classifier.onnx                 # Pour déploiement
+│       └── classifier.tflite               # Pour mobile
 │
-├── 📄 requirements.txt                        # DÉPENDANCES PYTHON
+├── requirements.txt                        # DÉPENDANCES PYTHON
 │   torch>=1.9
 │   torchvision
 │   ultralytics (YOLOv8)
@@ -192,16 +192,16 @@ driver-distraction-detection/                    # ROOT DU PROJET
 │   pandas, numpy
 │   scikit-learn
 │   matplotlib, seaborn
-│   albumentations (augmentation)
+│   albumentations
 │   tqdm, pyyaml
 │
-├── 📄 README.md                               # DOCUMENTATION
+├── README.md                               # DOCUMENTATION
 │   - Description projet
 │   - Installation
 │   - Utilisation
 │   - Résultats
 │
-└── 📄 .gitignore                              # FICHIERS IGNORÉS GIT
+└── .gitignore                              # FICHIERS IGNORÉS GIT
     - Données brutes
     - Modèles entraînés
     - Fichiers temporaires
