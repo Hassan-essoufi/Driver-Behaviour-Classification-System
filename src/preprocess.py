@@ -26,7 +26,7 @@ def load_image(image_path):
         raise ValueError(f"Error loading {image_path}: {e}")
 
 def get_train_transforms(input_size=(224, 224)):
-    """Training transformations with different augmentation levels"""
+    """Training transformations"""
      
     return transforms.Compose([
             transforms.Resize(input_size),
@@ -96,7 +96,7 @@ class DriverDistractionDataset(Dataset):
     
     def __getitem__(self, idx):
         row = self.data.iloc[idx]
-        image_path = row['image_path']
+        image_path = os.path.join(self.images_dir, row['image_path'])
         label = int(row["label_id"])
         image = load_image(image_path)
 
