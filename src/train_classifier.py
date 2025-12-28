@@ -3,7 +3,7 @@ import sys
 import torch
 import pandas as pd 
 import numpy as np
-
+import random
 import yaml
 from pathlib import Path
 
@@ -40,3 +40,43 @@ def load_training_config(
     }
 
     return config
+
+def setup_environment(config):
+    """
+    Setup training environment:
+    - device (CPU or GPU)
+    - reproducibility
+    - output directories
+    """
+
+    # Device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"[INFO] Using device: {device}")
+
+    # Reproducibility
+    seed = config.get("seed", 42)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+    print(f"[INFO] Random seed set to {seed}")
+
+    # Output directories
+    output_root = Path(config.get("output_dir", "results"))
+    checkpoints_dir = output_root / "checkpoints"
+    logs_dir = output_root / "training_logs"
+
+    checkpoints_dir.mkdir(parents=True, exist_ok=True)
+    logs_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"[INFO] Checkpoints directory: {checkpoints_dir}")
+    print(f"[INFO] Logs directory: {logs_dir}")
+
+    # Save paths in config for later use
+    config["checkpoints_dir"] = checkpoints_dir
+    config["logs_dir"] = logs_dir
+
+    return device
