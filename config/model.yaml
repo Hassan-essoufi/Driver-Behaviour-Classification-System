@@ -1,32 +1,24 @@
-# =========================================
-# MODEL CONFIGURATION
-# =========================================
+models:
+  resnet50:
+    num_classes: 10
+    pretrained: true
+    input_size: 224
+    classifier:
+      dropout: 0.5
+      hidden_dim: null
+    fine_tuning:
+      freeze_backbone: false
+      unfreeze_from_layer: null
+    use_batch_norm: true
 
-# Choose model architecture
-# options: resnet50 | efficientnet_b0 | efficientnet_b3
-model_name: resnet50
-
-# Number of output classes
-num_classes: 10
-
-# Pretrained weights
-pretrained: true
-
-# Input image size
-# ResNet50: 224
-# EfficientNet-B0: 224
-# EfficientNet-B3: 300
-input_size: 224
-
-# Classification head
-classifier:
-  dropout: 0.5
-  hidden_dim: null   # null → direct FC to num_classes
-
-# Fine-tuning strategy
-fine_tuning:
-  freeze_backbone: false
-  unfreeze_from_layer: null   # e.g. "layer3" for ResNet
-
-# Batch Normalization
-use_batch_norm: true
+  efficientnet_b3:
+    num_classes: 10
+    pretrained: true
+    input_size: 300
+    classifier:
+      dropout: 0.5
+      hidden_dim: null
+    fine_tuning:
+      freeze_backbone: false
+      unfreeze_from_layer: null
+    use_batch_norm: true

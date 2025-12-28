@@ -1,5 +1,3 @@
 data/raw/
 
-*.txt
-
-!requirement.txt
+structure*.txt
