@@ -1,0 +1,43 @@
+
+# Dataloader parameters
+dataloader:
+  batch_size: 32
+  num_workers: 4
+  pin_memory: true
+  shuffle: true
+
+# Training parameters
+training:
+  epochs: 30
+  early_stopping_patience: 7
+  mixed_precision: true
+
+# Optimizer
+optimizer:
+  name: adamw
+  lr: 0.0001
+  weight_decay: 0.00001
+
+# Learning rate scheduler
+scheduler:
+  name: reduce_on_plateau
+  factor: 0.3
+  patience: 3
+  min_lr: 0.000001
+
+# Loss function
+loss:
+  name: cross_entropy
+  use_class_weights: false   # set true only if imbalance appears
+
+# Metrics
+metrics:
+  - accuracy
+  - f1_macro
+  - auc_roc
+
+# Logging & saving
+output_dir: results
+save_best_model: true
+monitor_metric: val_f1_macro
+monitor_mode: max
