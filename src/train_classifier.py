@@ -229,7 +229,7 @@ def build_scheduler(optimizer, config):
 
     scheduler_name = scheduler_name.lower()
 
-    if scheduler_name == "step":
+    if scheduler_name == "step_lr":
         scheduler = StepLR(
             optimizer,
             step_size=sched_cfg.get("step_size", 10),
@@ -243,7 +243,7 @@ def build_scheduler(optimizer, config):
             eta_min=sched_cfg.get("eta_min", 1e-6)
         )
 
-    elif scheduler_name == "plateau":
+    elif scheduler_name == "reduce_on_plateau":
         scheduler = ReduceLROnPlateau(
             optimizer,
             mode="max",
@@ -324,16 +324,14 @@ def validate_one_epoch(model, val_loader, criterion, device):
 
     return avg_loss, accuracy
 
-def save_checkpoint(state, config):
+def save_checkpoint(state, config, is_best):
     """
     Save model checkpoints.
     Keep best model based on validation performance.
     """
 
-    checkpoint_dir = config.get("checkpoint_dir", "models")
+    checkpoint_dir = config.get("checkpoint_dir", "checkpoints")
     os.makedirs(checkpoint_dir, exist_ok=True)
-
-    is_best = config.get("save_best_model", True)
 
     last_ckpt_path = os.path.join(checkpoint_dir, "last_checkpoint.pth")
     torch.save(state, last_ckpt_path)
@@ -346,4 +344,138 @@ def save_checkpoint(state, config):
         print(f"Best model updated and saved at: {best_model_path}")
 
     print(f"Checkpoint saved: {last_ckpt_path}")
+
+def train_classifier(images_dir, model_name):
+    """
+    Full training pipeline
+    """
+    # Loading config
+    config = load_training_config(
+        training_cfg_path="config/training.yaml",
+        model_cfg_path="config/model.yaml")
+    
+    # Device
+    device = setup_environment(config)
+
+    # Dataloaders
+    loader_conf = config.get("dataloader", "")
+    batch_size = loader_conf.get("batch_size", 2)
+    num_workers = loader_conf.get("num_workers", 2)
+    shuffle = loader_conf.get("shuffle", True)
+
+    model_conf = config.get(model_name, "resnet50")
+    input_size = model_conf.get("input_size", (224,224))
+
+    train_transform = preprocess.get_train_transforms(input_size)
+    val_transform = preprocess.get_val_transforms(input_size)
+
+    train_loader = preprocess.create_dataloader(
+        "data/annotations/train_labels.csv", images_dir,
+        train_transform, batch_size,
+        shuffle, num_workers
+    )
+
+    val_loader = preprocess.create_dataloader(
+        "data/annotations/val_labels.csv", images_dir,
+        val_transform, batch_size,
+        shuffle, num_workers
+    )
+
+    # Model
+    model = build_model(config, model_name)
+    model.to(device)
+
+    criterion = build_loss_function(config)
+    optimizer = build_optimizer(model, config)
+    scheduler = build_scheduler(optimizer, config)
+
+    # Training
+    best_val_acc = 0.0
+    num_epochs = config["training"]["epochs"]
+
+    for epoch in range(num_epochs):
+        print(f"\nEpoch [{epoch+1}/{num_epochs}]")
+
+        train_loss, train_acc = train_one_epoch(
+            model,
+            train_loader,
+            criterion,
+            optimizer,
+            device)
+
+        val_loss, val_acc = validate_one_epoch(
+            model,
+            val_loader,
+            criterion,
+            device)
+        #  Scheduler
+        if scheduler is not None:
+            if config["scheduler"]["type"] == "ReduceLROnPlateau":
+                scheduler.step(val_loss)
+            else:
+                scheduler.step()
+
+        print(
+            f"Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.4f} | "
+            f"Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f}"
+        )
+
+        # Checkpoint
+        is_best = val_acc > best_val_acc
+        if is_best:
+            best_val_acc = val_acc
+
+        checkpoint_state = {
+            "epoch": epoch + 1,
+            "model_state": model.state_dict(),
+            "optimizer_state": optimizer.state_dict(),
+            "best_val_acc": best_val_acc,
+            "config": config
+        }
+
+        save_checkpoint(
+            state=checkpoint_state,
+            is_best=is_best,
+            config=config
+        )
+
+    print("\nTraining completed.")
+    print(f"Best validation accuracy: {best_val_acc:.4f}")    
+
+def load_best_model(config, model_name, device):
+    """
+    Load the best trained model from checkpoints.
+    """
+
+    model = build_model(config, model_name)
+    model.to(device)
+
+    checkpoint_dir = config.get("checkpoint_dir", "checkpoints")
+    checkpoint_path = os.path.join(
+        checkpoint_dir, f"{model_name}_best.pth"
+    )
+
+    if not os.path.exists(checkpoint_path):
+        raise FileNotFoundError(
+            f"Best model checkpoint not found: {checkpoint_path}"
+        )
+
+    # Loading checkpoint
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+
+    # Loading model weights
+    model.load_state_dict(checkpoint["model_state_dict"])
+
+    # Evaluation mode
+    model.eval()
+
+    print(f"Loaded best model from: {checkpoint_path}")
+
+    return model
+
+
+
+
+
+
 

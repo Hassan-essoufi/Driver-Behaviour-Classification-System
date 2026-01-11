@@ -85,7 +85,7 @@ class DriverDistractionDataset(Dataset):
         if images_dir and os.path.exists(images_dir):
             self.images_dir = images_dir
         else:
-            raise FileNotFoundError('Diroctory not found')
+            raise FileNotFoundError('Directory not found')
 
         self.transform = transform
 
@@ -116,7 +116,7 @@ def create_dataloader(
         batch_size=batch_size,
         shuffle=shuffle,
         num_workers=num_workers,
-        pin_memory=True
+        pin_memory=False
     )
 
     return loader

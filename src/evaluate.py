@@ -13,7 +13,7 @@ from contextlib import redirect_stdout
 # 1. CORE METRICS COMPUTATION FUNCTIONS
 
 
-def compute_model_metrics(y_true, y_pred, model_name=""):
+def compute_model_metrics(y_true, y_pred, model_name):
     """Compute metrics for a single model."""
     return {
         'model': model_name,
