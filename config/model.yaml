@@ -2,7 +2,7 @@ models:
   resnet50:
     num_classes: 10
     pretrained: True
-    input_size: 224
+    input_size: (224,224)
     classifier:
       dropout: 0.3
       hidden_dim: null
@@ -14,7 +14,7 @@ models:
   efficientnet_b3:
     num_classes: 10
     pretrained: True
-    input_size: 300
+    input_size: (300,300)
     classifier:
       dropout: 0.3
       hidden_dim: null
