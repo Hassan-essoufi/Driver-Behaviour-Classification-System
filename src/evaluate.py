@@ -2,8 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+import json
+import os
+from datetime import datetime
+import io
+from contextlib import redirect_stdout
 
 
+
+# 1. CORE METRICS COMPUTATION FUNCTIONS
 
 
 def compute_model_metrics(y_true, y_pred, model_name=""):
@@ -20,33 +27,60 @@ def compute_model_metrics(y_true, y_pred, model_name=""):
     }
 
 
-def evaluate_models(y_true, predictions_dict, class_names=None):
-    """
-    Evaluate multiple models.
+def print_results(metrics_dict):
+    """Display clean comparative results table."""
     
-    Args:
-        y_true: True labels
-        predictions_dict: Dict {model_name: predictions}
-        class_names: List of class names
-    """
-    if class_names is None:
-        class_names = [f'c{i}' for i in range(10)]
+    model_names = list(metrics_dict.keys())
     
-    # Compute metrics for each model
-    metrics = {}
-    for name, pred in predictions_dict.items():
-        metrics[name] = compute_model_metrics(y_true, pred, name)
+    print(f"\n{'Metric':<15}", end="")
+    for name in model_names:
+        print(f"{name:<15}", end="")
+    print(f"{'Best':<10}")
+    print("-" * (15 + 15*len(model_names) + 10))
     
-    # Display results
-    print_results(metrics)
+    for metric_key, metric_name in [('accuracy', 'Accuracy'), 
+                                   ('precision', 'Precision'),
+                                   ('recall', 'Recall'), 
+                                   ('f1', 'F1-Score')]:
+        print(f"{metric_name:<15}", end="")
+        
+        values = []
+        for name in model_names:
+            value = metrics_dict[name][metric_key]
+            values.append(value)
+            print(f"{value:.4f}{'':<11}", end="")
+        
+        best_idx = np.argmax(values)
+        best_name = model_names[best_idx]
+        print(f"{best_name:<10}")
     
-    # Generate visualizations
-    figs = generate_visualizations(metrics, class_names, y_true, predictions_dict)
+    # Determine overall best model
+    avg_scores = {}
+    for name in model_names:
+        scores = [metrics_dict[name][k] for k in ['accuracy', 'precision', 'recall', 'f1']]
+        avg_scores[name] = np.mean(scores)
     
-    return {'metrics': metrics, 'figures': figs}
+    best_model = max(avg_scores, key=avg_scores.get)
+    print(f"\nBest model: {best_model} (average score: {avg_scores[best_model]:.4f})")
 
 
-# ==> VISUALIZATION FUNCTIONS <==
+def get_best_model(metrics_dict):
+    """Return the best model based on average F1-Score."""
+    avg_scores = {}
+    for name, metrics in metrics_dict.items():
+        avg_scores[name] = np.mean([
+            metrics['accuracy'],
+            metrics['precision'], 
+            metrics['recall'],
+            metrics['f1']
+        ])
+    
+    return max(avg_scores, key=avg_scores.get)
+
+
+
+
+# 2. VISUALIZATION FUNCTIONS
 
 def plot_metrics_comparison(metrics_dict, model_names, class_names):
     """Compare global metrics across models."""
@@ -76,7 +110,6 @@ def plot_metrics_comparison(metrics_dict, model_names, class_names):
     return fig
 
 
-
 def plot_confusion_matrices(metrics_dict, model_names, class_names):
     """Display confusion matrices side by side."""
     n_models = len(model_names)
@@ -96,7 +129,6 @@ def plot_confusion_matrices(metrics_dict, model_names, class_names):
     plt.suptitle('Confusion Matrices', fontsize=14, fontweight='bold')
     plt.tight_layout()
     return fig
-
 
 
 def plot_per_class_metrics(metrics_dict, model_names, class_names):
@@ -171,48 +203,7 @@ def plot_error_distribution(y_true, predictions_dict, model_names):
     ax.set_title('Prediction Distribution', fontweight='bold')
     return fig
 
-
-
-# ==> UTILITIES <==
-
-def print_results(metrics_dict):
-    """Display clean comparative results table."""
-    
-    model_names = list(metrics_dict.keys())
-    
-    print(f"\n{'Metric':<15}", end="")
-    for name in model_names:
-        print(f"{name:<15}", end="")
-    print(f"{'Best':<10}")
-    print("-" * (15 + 15*len(model_names) + 10))
-    
-    for metric_key, metric_name in [('accuracy', 'Accuracy'), 
-                                   ('precision', 'Precision'),
-                                   ('recall', 'Recall'), 
-                                   ('f1', 'F1-Score')]:
-        print(f"{metric_name:<15}", end="")
-        
-        values = []
-        for name in model_names:
-            value = metrics_dict[name][metric_key]
-            values.append(value)
-            print(f"{value:.4f}{'':<11}", end="")
-        
-        best_idx = np.argmax(values)
-        best_name = model_names[best_idx]
-        print(f"{best_name:<10}")
-    
-    # Determine overall best model
-    avg_scores = {}
-    for name in model_names:
-        scores = [metrics_dict[name][k] for k in ['accuracy', 'precision', 'recall', 'f1']]
-        avg_scores[name] = np.mean(scores)
-    
-    best_model = max(avg_scores, key=avg_scores.get)
-    print(f"\nBest model: {best_model} (average score: {avg_scores[best_model]:.4f})")
-
-
-
+# 3. COMPOSITE FUNCTIONS
 
 def generate_visualizations(metrics_dict, class_names, y_true, predictions_dict):
     """Generate all visualizations."""
@@ -227,15 +218,108 @@ def generate_visualizations(metrics_dict, class_names, y_true, predictions_dict)
     return figs
 
 
-def get_best_model(metrics_dict):
-    """Return the best model based on average F1-Score."""
-    avg_scores = {}
-    for name, metrics in metrics_dict.items():
-        avg_scores[name] = np.mean([
-            metrics['accuracy'],
-            metrics['precision'], 
-            metrics['recall'],
-            metrics['f1']
-        ])
+def save_results_simple(metrics, figures, results_dir="results"):
+    """
+    Save visualizations and metrics summary.
+    """
+    # Create directories
+    vis_dir = os.path.join(results_dir, "visualizations")
+    metrics_dir = os.path.join(results_dir, "metrics")
+    os.makedirs(vis_dir, exist_ok=True)
+    os.makedirs(metrics_dir, exist_ok=True)
     
-    return max(avg_scores, key=avg_scores.get)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    saved_paths = {}
+    
+    # 1. Save visualizations
+    if figures:
+        vis_names = [
+            "global_metrics_comparison.png",
+            "confusion_matrices.png", 
+            "per_class_metrics.png",
+            "error_distribution.png"
+        ]
+        
+        for i, (fig, name) in enumerate(zip(figures, vis_names)):
+            if i < len(figures):
+                filepath = os.path.join(vis_dir, f"{timestamp}_{name}")
+                fig.savefig(filepath, dpi=150, bbox_inches='tight')
+                saved_paths[name] = filepath
+    
+    # 2. Save metrics summary (simple JSON)
+    metrics_file = os.path.join(metrics_dir, f"{timestamp}_metrics_summary.json")
+    
+    # Prepare simplified metrics
+    summary = {
+        "timestamp": timestamp,
+        "models": {},
+        "best_model": get_best_model(metrics)
+    }
+    
+    for model_name, model_metrics in metrics.items():
+        summary["models"][model_name] = {
+            "accuracy": float(model_metrics['accuracy']),
+            "precision": float(model_metrics['precision']),
+            "recall": float(model_metrics['recall']),
+            "f1_score": float(model_metrics['f1'])
+        }
+    
+    with open(metrics_file, 'w') as f:
+        json.dump(summary, f, indent=2)
+    
+    saved_paths['metrics_summary'] = metrics_file
+    
+    # 3. Save print_results output to text file
+    txt_file = os.path.join(metrics_dir, f"{timestamp}_results_table.txt")
+    
+    # Capture print_results output
+    
+    f = io.StringIO()
+    with redirect_stdout(f):
+        print_results(metrics)
+    output = f.getvalue()
+    
+    with open(txt_file, 'w') as f:
+        f.write(output)
+    
+    saved_paths['results_table'] = txt_file
+    
+    return saved_paths
+
+
+
+# 4. MAIN EVALUATION FUNCTION
+
+def evaluate_models(y_true, predictions_dict, class_names=None, 
+                   save_results=True, results_dir="results"):
+    """
+    Evaluate multiple models and save visualizations + metrics.
+    
+    Args:
+        y_true: True labels
+        predictions_dict: Dict {model_name: predictions}
+        class_names: List of class names
+        save_results: Whether to save results to files
+        results_dir: Directory to save results (relative to project root)
+    """
+    if class_names is None:
+        class_names = [f'c{i}' for i in range(10)]
+    
+    # Compute metrics for each model
+    metrics = {}
+    for name, pred in predictions_dict.items():
+        metrics[name] = compute_model_metrics(y_true, pred, name)
+    
+    # Display results
+    print_results(metrics)
+    
+    # Generate visualizations
+    figs = generate_visualizations(metrics, class_names, y_true, predictions_dict)
+    
+    # Save results if requested
+    if save_results:
+        saved_paths = save_results_simple(metrics, figs, results_dir)
+        return {'metrics': metrics, 'figures': figs, 'saved_paths': saved_paths}
+    
+    return {'metrics': metrics, 'figures': figs}
+
