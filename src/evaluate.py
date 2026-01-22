@@ -1,8 +1,3 @@
-"""
-evaluate.py - Model Evaluation Module
-Simplified version for EfficientNet vs ResNet18 comparison
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -12,10 +7,6 @@ import os
 from datetime import datetime
 import io
 from contextlib import redirect_stdout
-
-# ============================================================================
-# 1. CORE FUNCTIONS
-# ============================================================================
 
 def compute_model_metrics(y_true, y_pred, model_name):
     """Compute metrics for a single model."""
@@ -80,10 +71,6 @@ def get_best_model(metrics_dict):
     
     return max(avg_scores, key=avg_scores.get)
 
-
-# ============================================================================
-# 2. VISUALIZATION FUNCTIONS
-# ============================================================================
 
 def plot_metrics_comparison(metrics_dict, model_names, class_names):
     """Compare global metrics across models."""
@@ -240,10 +227,6 @@ def generate_visualizations(metrics_dict, class_names, train_acc=None,
     return figs
 
 
-# ============================================================================
-# 3. RESULTS SAVING
-# ============================================================================
-
 def save_results_simple(metrics, figures, results_dir="results"):
     """Save visualizations and metrics summary."""
     # Create directories
@@ -313,10 +296,6 @@ def save_results_simple(metrics, figures, results_dir="results"):
     
     return saved_paths
 
-
-# ============================================================================
-# 4. MAIN EVALUATION FUNCTION
-# ============================================================================
 
 def evaluate_models(y_true, predictions_dict, class_names=None, 
                    train_acc=None, val_acc=None, test_acc=None,

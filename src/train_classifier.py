@@ -1,9 +1,4 @@
-"""Training functions for driver distraction detection"""
-
-import os
-import sys
 from pathlib import Path
-from datetime import datetime
 
 import torch
 import torch.nn as nn
@@ -14,8 +9,6 @@ from torch.optim.lr_scheduler import (
     CosineAnnealingLR,
     ReduceLROnPlateau
 )
-
-import pandas as pd 
 import numpy as np
 import random
 import yaml

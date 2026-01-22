@@ -1,9 +1,7 @@
-# preprocess.py - Corrected and Complete Version
 import os
 import pandas as pd
 from PIL import Image
 import numpy as np
-import matplotlib.pyplot as plt
 
 import torch
 from torch.utils.data import Dataset, DataLoader
