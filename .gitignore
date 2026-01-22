@@ -1,7 +1,0 @@
-
-
-*.csv
-*.h5
-*.ipynb_checkpoints
-*.pyc
-data/
