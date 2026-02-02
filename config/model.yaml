@@ -1,0 +1,24 @@
+models:
+  resnet50:
+    num_classes: 10
+    pretrained: True
+    input_size: (224,224)
+    classifier:
+      dropout: 0.3              # ⬇️ Réduit (meilleur apprentissage)
+      hidden_dim: null          # ⬇️ Pas de couche cachée (plus rapide)
+    fine_tuning:
+      freeze_backbone: False    # ⬆️ TOUT entraînable pour performance
+      unfreeze_from_layer: 'layer3'  # ⬆️ Dégel partiel (équilibre)
+    use_batch_norm: True
+
+  efficientnet_b3:
+    num_classes: 10
+    pretrained: True
+    input_size: (300,300)
+    classifier:
+      dropout: 0.3              # Même que ResNet
+      hidden_dim: null          # Simple pour vitesse
+    fine_tuning:
+      freeze_backbone: False    # ⬆️ TOUT entraînable
+      unfreeze_from_layer: 'features.6'  # ⬆️ Dégel partiel (équilibre)
+    use_batch_norm: True
