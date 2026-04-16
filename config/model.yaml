@@ -2,23 +2,23 @@ models:
   resnet50:
     num_classes: 10
     pretrained: True
-    input_size: (224,224)
+    input_size: [224, 224]
     classifier:
-      dropout: 0.1           
-      hidden_dim: 512         
+      dropout: 0.4            # stronger regularization (was 0.1)
+      hidden_dim: 512
     fine_tuning:
-      freeze_backbone: True    
-      unfreeze_from_layer: null 
-    use_batch_norm: False
+      freeze_backbone: True   # freeze backbone, only train classifier head
+      unfreeze_from_layer: null
+    use_batch_norm: True      # BN stabilizes training when hidden_dim is used
 
   efficientnet_b3:
     num_classes: 10
     pretrained: True
-    input_size: (300,300)
+    input_size: [300, 300]
     classifier:
-      dropout: 0.1           
-      hidden_dim: 512        
+      dropout: 0.4            # stronger regularization (was 0.1)
+      hidden_dim: 512
     fine_tuning:
-      freeze_backbone: True  
+      freeze_backbone: True   # freeze backbone, only train classifier head
       unfreeze_from_layer: null
-    use_batch_norm: False
+    use_batch_norm: True      # BN stabilizes training when hidden_dim is used

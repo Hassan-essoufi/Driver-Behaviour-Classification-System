@@ -1,30 +1,28 @@
 
 dataloader:
-  batch_size: 64                
-  num_workers: 8                
+  batch_size: 32        # 64 causes OOM on Colab free GPU; 32 is safe
+  num_workers: 2      # Colab provides 2 CPU cores max
   shuffle: True
 
 training:
-  epochs: 20                    
-  patience: 5    
-  mixed_precision: True         
+  epochs: 30            # more epochs, early stopping will cut it short if needed
+  patience: 7           # give more room before stopping
 
 optimizer:
   name: adamw
-  lr: 0.0003                    
-  weight_decay: 0.0005          
-
+  lr: 0.0003
+  weight_decay: 0.0005
 
 scheduler:
   name: reduce_on_plateau
-  factor: 0.1                   
-  patience: 5
-  min_lr: 1e-6
+  factor: 0.2           # less aggressive decay (was 0.1)
+  patience: 3           # react faster to plateau
+  min_lr: 1e-7          # allow finer tuning at the end
 
 loss:
   name: cross_entropy
   class_weights: null
-  label_smoothing: 0.05         
+  label_smoothing: 0.1  # slightly stronger smoothing helps with 10 classes
 
 metrics:
   - accuracy
